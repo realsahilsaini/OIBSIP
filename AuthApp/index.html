@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup/Signin Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #3f3f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: rgb(200, 200, 178);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .toggle {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .toggle a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .information {
+            text-align: center;
+            margin-top: 1rem;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="signup">
+            <h2>Sign Up</h2>
+            <form>
+                <input type="text" placeholder="Username" required class="signup-username">
+                <input type="password" placeholder="Password" required class="signup-password">
+                <button type="submit" onclick="signup()">Sign Up</button>
+            </form>
+
+            <p class="toggle">Already have an account? <a href="#" onclick="toggleForm()">Sign In</a></p>
+
+        </div>
+
+        <div id="signin" style="display: none;">
+            <h2>Sign In</h2>
+            <form>
+                <input type="text" placeholder="Username" required class="signin-username">
+                <input type="password" placeholder="Password" required class="signin-password">
+                <button type="submit" onclick="signin()">Sign In</button>
+                <div class="userInfo" style="display: none;"></div>
+            </form>
+
+
+
+        </div>
+        <p class="information"></p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function toggleForm() {
+            const signup = document.getElementById('signup');
+            const signin = document.getElementById('signin');
+            if (signup.style.display === 'none') {
+                signup.style.display = 'block';
+                signin.style.display = 'none';
+            } else {
+                signup.style.display = 'none';
+                signin.style.display = 'block';
+            }
+        }
+
+        async function signup() {
+
+            try {
+
+                event.preventDefault();
+                const username = document.querySelector('.signup-username').value;
+                const password = document.querySelector('.signup-password').value;
+
+
+                const response = await axios.post('http://localhost:3000/signup', {
+                    username: username,
+                    password: password
+                });
+
+                document.querySelector('.information').innerText = response.data.message;
+
+                toggleForm();
+
+            } catch (err) {
+                if (err.response.status === 409) {
+                    alert('Username already exists');
+                }
+            }
+
+
+        }
+
+        async function signin() {
+            event.preventDefault();
+
+            const username = document.querySelector('.signin-username').value;
+            const password = document.querySelector('.signin-password').value;
+
+            try {
+
+                const response = await axios.post('http://localhost:3000/signin', {
+                    username: username,
+                    password: password
+                });
+
+
+
+                if (response.status === 200) {
+                    localStorage.setItem('token', response.data.token);
+
+                    document.querySelector('.information').innerText = "Signed in successfully";
+
+                    getInfo();
+                }
+
+            } catch (err) {
+
+                if (err.response.status === 401) {
+                    alert('Invalid username or password');
+                }
+
+            }
+
+        }
+
+        async function getInfo() {
+            const token = localStorage.getItem('token');
+            const resposne = await axios.get('http://localhost:3000/user', {
+                headers: {
+                    token: token
+                }
+            });
+
+            const userName = resposne.data.username;
+            const password = resposne.data.password;
+
+            document.querySelector('.information').innerText = `Username: ${userName}, Password: ${password}`;
+        }
+
+    </script>
+</body>
+
+</html>
