@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <style>
+    /* Base styles */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  background: #ffffff;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333333;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #dddddd;
+  border-radius: 4px;
+  font-size: 16px;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: #007bff;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.todo-list {
+  margin-top: 20px;
+}
+
+.todo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.todo-item h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #333333;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+.edit-btn {
+  background-color: #ffc107;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.edit-btn:hover {
+  background-color: #e0a800;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>My Todo List</h1>
+    <div class="input-group">
+      <input type="text" id="todoInput" placeholder="Enter a new todo..." />
+      <button id="todoButton" onclick="addTodo()">Add todo!</button>
+    </div>
+    <div id="ParentDiv" class="todo-list"></div>
+  </div>
+
+  <script>
+    let todos = [];
+    let isEditing = false;
+    let currentEditIndex = null;
+
+    document.addEventListener('DOMContentLoaded', loadTodos);
+
+    function addTodo() {
+
+      const input = document.getElementById("todoInput");
+
+      if (isEditing) {
+        todos[currentEditIndex].title = input.value;
+        isEditing = false;
+        currentEditIndex = null;
+        document.getElementById("todoButton").innerText = "Add todo!";
+      } else {
+        todos.push({
+          title: input.value
+        });
+      }
+
+      render();
+
+      saveTodos();
+    }
+
+    function deleteTodo(id) {
+      todos.splice(id, 1);
+      render();
+
+      saveTodos();
+    }
+
+    function editTodo(id) {
+      const input = document.getElementById("todoInput");
+      input.value = todos[id].title;
+      isEditing = true;
+      currentEditIndex = id;
+      document.getElementById("todoButton").innerText = "Update todo!";
+    }
+
+    function render() {
+      const ParentDiv = document.getElementById("ParentDiv");
+      ParentDiv.innerHTML = "";
+
+      todos.forEach((todo, index) => {
+        const div = document.createElement("div");
+        const h4 = document.createElement("h4");
+        const DelBtn = document.createElement("button");
+        const EditBtn = document.createElement("button");
+
+        DelBtn.setAttribute("onclick", "deleteTodo(" + index + ")");
+        DelBtn.innerText = 'Delete';
+        DelBtn.classList.add("delete-btn");
+
+        EditBtn.setAttribute("onclick", "editTodo(" + index + ")");
+        EditBtn.innerText = 'Edit';
+        EditBtn.classList.add("edit-btn");
+
+        h4.textContent = todo.title;
+        div.appendChild(h4);
+        div.appendChild(EditBtn);
+        div.appendChild(DelBtn);
+
+        div.classList.add("todo-item");
+        ParentDiv.appendChild(div);
+      });
+
+      ClearInput();
+    }
+
+    function ClearInput() {
+      document.getElementById("todoInput").value = "";
+    }
+
+    function saveTodos() {
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+
+    function loadTodos(){
+      const data = localStorage.getItem("todos");
+      if(data){
+        todos = JSON.parse(data);
+        render();
+      }
+    }
+  </script>
+</body>
+</html>
